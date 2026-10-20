@@ -1,0 +1,65 @@
+id = "herdr-spotify"
+name = "Spotify"
+version = "0.1.0"
+min_herdr_version = "0.9.1"
+description = "Spotify now playing and keyboard controls in Herdr's bottom bar, with desktop-first playback on macOS."
+platforms = ["macos", "linux"]
+
+[[build]]
+command = ["go", "build", "-trimpath", "-o", "bin/herdr-spotify", "."]
+
+[[actions]]
+id = "setup"
+title = "Spotify: install status-bar launcher"
+contexts = ["global"]
+command = ["sh", "scripts/setup.sh"]
+
+[[actions]]
+id = "login"
+title = "Spotify: sign in for Web API access"
+contexts = ["global"]
+command = ["sh", "scripts/login.sh"]
+
+[[actions]]
+id = "prev"
+title = "Spotify: previous track"
+contexts = ["global"]
+command = ["bin/herdr-spotify", "prev"]
+
+[[actions]]
+id = "toggle"
+title = "Spotify: play/pause"
+contexts = ["global"]
+command = ["bin/herdr-spotify", "toggle"]
+
+[[actions]]
+id = "next"
+title = "Spotify: next track"
+contexts = ["global"]
+command = ["bin/herdr-spotify", "next"]
+
+[[actions]]
+id = "play"
+title = "Spotify: play"
+contexts = ["global"]
+command = ["bin/herdr-spotify", "play"]
+
+[[actions]]
+id = "pause"
+title = "Spotify: pause"
+contexts = ["global"]
+command = ["bin/herdr-spotify", "pause"]
+
+[[actions]]
+id = "like"
+title = "Spotify: toggle liked song"
+contexts = ["global"]
+command = ["bin/herdr-spotify", "like"]
+
+[[panes]]
+id = "login"
+title = "Spotify sign-in"
+placement = "popup"
+width = "80%"
+height = 18
+command = ["bin/herdr-spotify", "login"]

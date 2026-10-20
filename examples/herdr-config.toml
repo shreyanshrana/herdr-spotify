@@ -1,0 +1,31 @@
+# Merge into your existing config; don't duplicate an existing [ui] section.
+[ui]
+tab_bar_position = "bottom"
+hide_tab_bar_when_single_tab = false
+tab_bar_right = [
+  { type = "command", command = "~/.local/bin/herdr-spotify status", interval_seconds = 5, timeout_seconds = 10 },
+]
+
+[[keys.command]]
+key = "prefix+comma"
+type = "plugin_action"
+command = "herdr-spotify.prev"
+description = "Spotify: previous track"
+
+[[keys.command]]
+key = "prefix+space"
+type = "plugin_action"
+command = "herdr-spotify.toggle"
+description = "Spotify: play/pause"
+
+[[keys.command]]
+key = "prefix+period"
+type = "plugin_action"
+command = "herdr-spotify.next"
+description = "Spotify: next track"
+
+[[keys.command]]
+key = "prefix+alt+l"
+type = "plugin_action"
+command = "herdr-spotify.like"
+description = "Spotify: toggle liked song"

@@ -1,0 +1,9 @@
+/bin/
+/dist/
+/herdr-spotify
+*.test
+coverage.out
+.DS_Store
+.env
+auth.json
+status.json
