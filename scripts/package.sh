@@ -24,6 +24,7 @@ for target in darwin_arm64 darwin_amd64 linux_arm64 linux_amd64; do
     bundle="herdr-spotify_${version}_${target}"
     mkdir -p "$stage/$bundle/bin" "$stage/$bundle/examples" "$stage/$bundle/scripts"
     CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build -trimpath -o "$stage/$bundle/bin/herdr-spotify" .
+    CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build -trimpath -o "$stage/$bundle/bin/herdr-spotify-launcher" ./cmd/launcher
     cp README.md CONTRIBUTING.md LICENSE CHANGELOG.md herdr-plugin.toml "$stage/$bundle/"
     cp examples/herdr-config.toml "$stage/$bundle/examples/"
     cp scripts/setup.sh scripts/login.sh "$stage/$bundle/scripts/"

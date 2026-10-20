@@ -4,6 +4,7 @@ VERSION ?= 0.1.0
 
 build:
 	CGO_ENABLED=0 go build -trimpath -o bin/herdr-spotify .
+	CGO_ENABLED=0 go build -trimpath -o bin/herdr-spotify-launcher ./cmd/launcher
 
 test:
 	go test -race ./...
@@ -12,7 +13,7 @@ vet:
 	go vet ./...
 
 fmt-check:
-	@files="$$(gofmt -l *.go)"; if [ -n "$$files" ]; then printf 'Run gofmt on:\n%s\n' "$$files"; exit 1; fi
+	@files="$$(gofmt -l *.go cmd/launcher/*.go)"; if [ -n "$$files" ]; then printf 'Run gofmt on:\n%s\n' "$$files"; exit 1; fi
 
 check: fmt-check test vet
 

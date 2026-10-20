@@ -20,7 +20,9 @@ herdr plugin install shreyanshrana/herdr-spotify
 herdr plugin action invoke herdr-spotify.setup
 ```
 
-Herdr builds `bin/herdr-spotify` during installation. The setup action creates `~/.local/bin/herdr-spotify` as a symlink to that binary. Repeating setup for the same binary is safe; other existing files or symlinks are left untouched. To replace one intentionally, inspect it first, then run `sh scripts/setup.sh --force` from the new plugin directory. Directories are never replaced. This stable launcher lets the status bar invoke the executable without knowing Herdr's managed checkout path. Setup prints the location of the configuration example; it doesn't change your Herdr config.
+Herdr builds the plugin and a small launcher during installation. The setup action copies the launcher to `~/.local/bin/herdr-spotify`. On each invocation, it asks Herdr for the enabled plugin's current installation and runs its binary, so managed updates do not leave it pointing at an obsolete checkout. Herdr must be available through `HERDR_BIN_PATH` or your `PATH`.
+
+Repeating setup with an identical launcher is safe, and a legacy symlink to this checkout's binary is upgraded automatically. Other existing files or symlinks are left untouched. To replace one intentionally, inspect it first, then run `sh scripts/setup.sh --force` from the new plugin directory. Directories are never replaced. Setup also initializes storage locations and prints the configuration example's path; it doesn't change your Herdr config.
 
 Add `~/.local/bin` to your shell's `PATH` to use `herdr-spotify` directly, or use the full path in terminal commands.
 
@@ -34,7 +36,7 @@ herdr plugin link "$PWD"
 herdr plugin action invoke herdr-spotify.setup
 ```
 
-`plugin link` does not run build commands. Run `make build` after code changes; the launcher follows the rebuilt binary.
+`plugin link` does not run build commands. Run `make build` after code changes; the launcher resolves the rebuilt plugin binary. If you change the launcher itself, rerun setup with `--force` to refresh the installed copy.
 
 ### Prebuilt release
 
@@ -48,7 +50,7 @@ herdr plugin link "$PWD/herdr-spotify_0.1.0_darwin_arm64"
 herdr plugin action invoke herdr-spotify.setup
 ```
 
-Keep the extracted directory in a permanent location: the launcher and linked plugin reference it. Linking a prebuilt release does not require Go. If you later switch to GitHub-managed installation, first run `herdr plugin unlink herdr-spotify`.
+Keep the extracted directory in a permanent location: the linked plugin references it. Linking a prebuilt release does not require Go. If you later switch to GitHub-managed installation, first run `herdr plugin unlink herdr-spotify`.
 
 ## Sign in
 
@@ -170,7 +172,9 @@ Spotify must already be running; the helper does not launch it. If macOS asks to
 
 ### Credentials and polling
 
-- Credentials and polling state live in `~/.config/herdr-spotify/`. Credential files are owner-readable/writable only.
+- Plugin actions and setup use `HERDR_PLUGIN_CONFIG_DIR` for `auth.json` and `HERDR_PLUGIN_STATE_DIR` for `status.json`, when Herdr supplies them. Credential files are owner-readable/writable only; polling state is stored separately.
+- A location record under `${XDG_CONFIG_HOME:-~/.config}/herdr-spotify/location/` lets direct CLI and status-bar invocations use the same directories without needing plugin context. Run the setup action after installation to initialize this record. Without plugin context or a saved location, both files fall back to `${XDG_CONFIG_HOME:-~/.config}/herdr-spotify/`.
+- When storage locations change, existing credentials and polling state are copied only if the destination file is absent. Legacy `~/.config/herdr-spotify/` files are preserved, including rate-limit deadlines; no source files are deleted. Stop running plugin commands before migrating. Once migration is verified, you may remove obsolete credential copies manually.
 - Sign-in uses Authorization Code with PKCE and scopes `user-read-currently-playing`, `user-read-playback-state`, `user-modify-playback-state`, `user-library-read`, and `user-library-modify`.
 - API requests go to Spotify. The callback listens only on `127.0.0.1` during sign-in.
 - On macOS, the desktop source uses local automation for playback; liked-state checks and toggles use the Spotify Web API.
@@ -193,7 +197,7 @@ For GitHub-managed installs, reinstall the same repository to update:
 herdr plugin install shreyanshrana/herdr-spotify
 ```
 
-The launcher follows the managed checkout. For linked source checkouts, rebuild with `make build`. For prebuilt releases, unlink the old directory, link the new one, and run `sh scripts/setup.sh --force` from the new directory after verifying the existing launcher. Credentials and cooldown state remain outside the checkout.
+The launcher resolves the current registered installation on every invocation, including after a managed update or switching linked directories. For linked source checkouts, rebuild with `make build`. For prebuilt releases, unlink the old directory and link the new one. To refresh the launcher itself, run `sh scripts/setup.sh --force` from the new directory after verifying the existing launcher. Credentials and cooldown state remain outside the checkout.
 
 To remove:
 
@@ -205,7 +209,7 @@ To remove:
    rm ~/.local/bin/herdr-spotify
    ```
 
-4. Optionally remove `~/.config/herdr-spotify/` and revoke API access at https://www.spotify.com/account/apps/.
+4. Optionally remove the plugin's config and state directories, the location record, and any retained legacy credential copies described under Storage and network. Revoke API access at https://www.spotify.com/account/apps/.
 
 ## Contributing
 

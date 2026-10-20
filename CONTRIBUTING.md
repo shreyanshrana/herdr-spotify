@@ -27,6 +27,8 @@ See the README's local development section for linking the plugin to Herdr.
    ```
 
 4. Smoke-test the native archive's setup using a temporary home directory.
+   Verify that the installed launcher follows a changed plugin registry entry,
+   forwards command arguments, and refuses disabled or missing plugins.
 5. Commit the reviewed changes and verify the destination repository and
    publishing account before pushing.
 6. Create and push a matching `v0.1.0`-style Git tag. The release workflow

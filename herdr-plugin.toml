@@ -8,6 +8,9 @@ platforms = ["macos", "linux"]
 [[build]]
 command = ["go", "build", "-trimpath", "-o", "bin/herdr-spotify", "."]
 
+[[build]]
+command = ["go", "build", "-trimpath", "-o", "bin/herdr-spotify-launcher", "./cmd/launcher"]
+
 [[actions]]
 id = "setup"
 title = "Spotify: install status-bar launcher"

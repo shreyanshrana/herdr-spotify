@@ -21,17 +21,17 @@ func run(args []string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("usage: herdr-spotify login [--client-id ID] [--port 6061] | status | prev | next | toggle | play | pause | like")
 	}
-	dir, err := os.UserConfigDir()
+	store, err := openStore()
 	if err != nil {
 		return err
 	}
-	// Match Herdr's config location on macOS and Linux.
-	if home, err := os.UserHomeDir(); err == nil {
-		dir = home + "/.config"
-	}
-	store := &store{dir: dir + "/herdr-spotify"}
 	client := newSpotifyClient()
 	switch args[0] {
+	case "--init-storage":
+		if len(args) != 1 {
+			return fmt.Errorf("--init-storage accepts no arguments")
+		}
+		return nil
 	case "login":
 		flags := flag.NewFlagSet("login", flag.ContinueOnError)
 		id := flags.String("client-id", "", "Spotify developer app Client ID")

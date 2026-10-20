@@ -9,7 +9,7 @@ import (
 )
 
 func TestSetupPreservesExistingLaunchers(t *testing.T) {
-	for _, kind := range []string{"absent", "same symlink", "file", "other symlink", "directory"} {
+	for _, kind := range []string{"absent", "same symlink", "same launcher", "file", "other symlink", "directory"} {
 		for _, force := range []bool{false, true} {
 			name := kind
 			if force {
@@ -18,6 +18,7 @@ func TestSetupPreservesExistingLaunchers(t *testing.T) {
 			t.Run(name, func(t *testing.T) {
 				home, root := t.TempDir(), t.TempDir()
 				binary := filepath.Join(root, "bin", "herdr-spotify")
+				dispatcher := filepath.Join(root, "bin", "herdr-spotify-launcher")
 				launcher := filepath.Join(home, ".local", "bin", "herdr-spotify")
 				for _, dir := range []string{filepath.Dir(binary), filepath.Dir(launcher)} {
 					if err := os.MkdirAll(dir, 0700); err != nil {
@@ -27,10 +28,15 @@ func TestSetupPreservesExistingLaunchers(t *testing.T) {
 				if err := os.WriteFile(binary, []byte("#!/bin/sh\n"), 0700); err != nil {
 					t.Fatal(err)
 				}
+				if err := os.WriteFile(dispatcher, []byte("#!/bin/sh\n# launcher\n"), 0700); err != nil {
+					t.Fatal(err)
+				}
 				var err error
 				switch kind {
 				case "same symlink":
 					err = os.Symlink(binary, launcher)
+				case "same launcher":
+					err = os.WriteFile(launcher, []byte("#!/bin/sh\n# launcher\n"), 0700)
 				case "file":
 					err = os.WriteFile(launcher, []byte("keep me"), 0600)
 				case "other symlink":
@@ -53,13 +59,16 @@ func TestSetupPreservesExistingLaunchers(t *testing.T) {
 				}
 				cmd.Env = append(cmd.Env, "HOME="+home, "HERDR_PLUGIN_ROOT="+root)
 				out, err := cmd.CombinedOutput()
-				wantSuccess := kind == "absent" || kind == "same symlink" || (force && kind != "directory")
+				wantSuccess := kind == "absent" || kind == "same symlink" || kind == "same launcher" || (force && kind != "directory")
 				if (err == nil) != wantSuccess {
 					t.Fatalf("success=%v, want %v: %s", err == nil, wantSuccess, out)
 				}
 				if wantSuccess {
-					if target, err := os.Readlink(launcher); err != nil || target != binary {
-						t.Fatalf("incorrect launcher: %q, %v", target, err)
+					if data, err := os.ReadFile(launcher); err != nil || string(data) != "#!/bin/sh\n# launcher\n" {
+						t.Fatalf("incorrect launcher: %q, %v", data, err)
+					}
+					if info, err := os.Lstat(launcher); err != nil || !info.Mode().IsRegular() || info.Mode().Perm() != 0755 {
+						t.Fatalf("launcher must be an executable copy: %v, %v", info, err)
 					}
 				} else {
 					switch kind {

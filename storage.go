@@ -9,7 +9,17 @@ import (
 	"time"
 )
 
-type store struct{ dir string }
+type store struct {
+	dir      string
+	stateDir string
+}
+
+func (s *store) directory(name string) string {
+	if name == "status.json" && s.stateDir != "" {
+		return s.stateDir
+	}
+	return s.dir
+}
 
 func (s *store) resetPolling() error {
 	var cached cache
@@ -32,6 +42,9 @@ func (s *store) lock() (func(), error) {
 	if err := os.MkdirAll(s.dir, 0700); err != nil {
 		return nil, err
 	}
+	if err := os.MkdirAll(s.directory("status.json"), 0700); err != nil {
+		return nil, err
+	}
 	f, err := os.OpenFile(filepath.Join(s.dir, ".lock"), os.O_CREATE|os.O_RDWR, 0600)
 	if err != nil {
 		return nil, err
@@ -44,7 +57,7 @@ func (s *store) lock() (func(), error) {
 }
 
 func (s *store) load(name string, value any) error {
-	data, err := os.ReadFile(filepath.Join(s.dir, name))
+	data, err := os.ReadFile(filepath.Join(s.directory(name), name))
 	if errors.Is(err, os.ErrNotExist) {
 		return nil
 	}
@@ -59,7 +72,8 @@ func (s *store) save(name string, value any) error {
 	if err != nil {
 		return err
 	}
-	f, err := os.CreateTemp(s.dir, ".tmp-")
+	dir := s.directory(name)
+	f, err := os.CreateTemp(dir, ".tmp-")
 	if err != nil {
 		return err
 	}
@@ -71,5 +85,5 @@ func (s *store) save(name string, value any) error {
 	if err := f.Close(); err != nil {
 		return err
 	}
-	return os.Rename(f.Name(), filepath.Join(s.dir, name))
+	return os.Rename(f.Name(), filepath.Join(dir, name))
 }
