@@ -1,5 +1,7 @@
 # herdr-spotify
 
+<img width="828" height="36" alt="image" src="https://github.com/user-attachments/assets/7e498bb4-201b-4ee6-97a9-b95749aa2c9d" />
+
 Spotify now-playing text, keyboard playback controls, and a like/unlike toggle for Herdr's bottom status area. Written in Go with no external dependencies. Supports macOS and Linux, tracks and podcasts, and paused playback. On macOS the desktop app is preferred; the Web API is the fallback. API playback controls require Spotify Premium.
 
 ## Requirements
